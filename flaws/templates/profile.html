@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User profile</title>
+</head>
+<body>
+    <h1>User profile</h1>
+    <p><strong>Username:</strong> {{ profile.user }}</p>
+    <p><strong>Bio:</strong> {{ profile.bio }}</p>
+
+    <!-- Form for editing bio -->
+    <form method="post" action="">
+
+        <!-- Flaw 3: Cross-Site Request Forgery (CSRF) (missing {% csrf_token %}) -->
+        <!-- Fix for Flaw 3: Adding CSRF protection -->
+        <!-- {% csrf_token %} -->
+
+        <textarea id="id_bio" name="bio">{{ profile.bio }}</textarea><br>
+        <button type="submit">Update Bio</button>
+    </form><br>
+
+    <form action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit">Logout</button>
+    </form>
+</body>
+</html>
