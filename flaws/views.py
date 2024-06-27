@@ -21,6 +21,7 @@ def logout_view(request):
 def register_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
+        # Flaw 1: Plain text password handling
         password1 = request.POST.get('password1')
         password2 = request.POST.get('password2')
         if password1 != password2:
@@ -29,9 +30,10 @@ def register_view(request):
         if User.objects.filter(username=username).exists():
             error_message = "Username already exists"
             return render(request, 'register.html', {'error_message': error_message})
-        # Flaw: Creating user manually and storing password in plain text
+        # Flaw 1: Creating user manually and storing password in plain text
         user = User(username=username, password=password1)
         user.save()
+        # Flaw 4: No form validation handling
         Profile.objects.create(user=user)
         return redirect('/login')
     return render(request, 'register.html')
@@ -41,7 +43,7 @@ def login_view(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         try:
-            # Flaw: A malicious user can inject SQL to manipulate the query result
+            # Flaw 5: A malicious user can inject SQL to manipulate the query result
             user = User.objects.raw(f"SELECT * FROM auth_user WHERE username='{username}' AND password='{password}'")
             user = user[0] if user else None
         except User.DoesNotExist:
@@ -92,8 +94,10 @@ def login_view(request):
 # Flaw 2: Broken Access Control (No access control, anyone can view any user's profile)
 # Flaw 3: Cross-Site Request Forgery (CSRF) protection missing
 
+# Flaw 3: Missing CSRF protection
 @csrf_exempt
 def user_profile(request, user_id):
+    # Flaw 2: No access control
     user = get_object_or_404(User, id=user_id)
     profile = get_object_or_404(Profile, user=user)
     if request.method == 'POST':
@@ -108,7 +112,6 @@ def user_profile(request, user_id):
 
 # @login_required
 # def user_profile(request, user_id):
-#     # Fix: Check if the current user is accessing their own profile
 #     if request.user.id != user_id:
 #         return redirect('/')
 #     profile = get_object_or_404(Profile, user=request.user)
